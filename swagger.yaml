@@ -1,0 +1,261 @@
+
+  openapi: 3.0.3
+  info:
+    title: People info
+    version: 0.0.1
+  paths:
+    /users:
+      get:
+        parameters:
+          - name: name
+            in: query
+            required: true
+            schema:
+              type: string
+          - name: surname
+            in: query
+            required: true
+            schema:
+              type: string
+          - name: address
+            in: query
+            required: true
+            schema:
+              type: string
+          - name: date
+            in: query
+            required: true
+            schema:
+              type: string
+        responses:
+          200:
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      passportNumber:
+                        type: string
+                        example: 1234 567890
+                      passport_num:
+                        type: integer
+                        example: 1234
+                      passport_series:
+                        type: integer
+                        example: 567890
+                      name:
+                        type: string
+                        example: Nina
+                      surname:
+                        type: string
+                        example: Smolenseva
+                      address:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+      post:
+        summary: Create User
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  passportNumber:
+                    type: string
+                    example: 1234 567890
+                    minimum: 11
+                    maximum: 11
+                  name:
+                    type: string
+                    example: Nina
+                  surname:
+                    type: string
+                    example: Smolentseva
+                  address:
+                    type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              text/plain:
+                schema:
+                  type: string
+                  example: ''
+
+      put:
+        summary: Update user info
+        tags:
+          - users
+        parameters:
+          - name: passportNumber
+            in: query
+            schema:
+              type: string
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Katya
+                  surname:
+                    type: string
+                    example: Smolentseva
+                  address:
+                    type: string
+
+        responses:
+          '200':
+            description: OK
+
+      delete:
+        summary: Delete user
+        tags:
+          - users
+        parameters:
+          - name: id
+            in: query
+            schema:
+              type: integer
+        responses:
+          '200':
+            description: OK
+    /tasks:
+      post:
+        summary: Start timing a task for the user
+        tags:
+          - tasks
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 13
+                  name:
+                    type: string
+                    example: New task
+
+                  status:
+                    type: boolean
+                  created_at:
+                    type: string
+                    format: date-time
+                  finished_at:
+                    type: string
+                    format: date-time
+                  user_id:
+                    type: integer
+                    format: int64
+                    example: 105
+        responses:
+          '200':
+            description: Successful creation
+      put:
+        summary: End the task timer for the user
+        tags:
+          - tasks
+        parameters:
+          - name: id
+            in: query
+            schema:
+              type: integer
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        format: int64
+                        example: 12
+                      name:
+                        type: string
+                        example: task1
+                      status:
+                        type: boolean
+                      created_at:
+                        type: string
+                        format: date-time
+                      finished_at:
+                        type: string
+                        format: data-time
+                      lead_time:
+                        type: integer
+                      user_id:
+                        type: integer
+                        format: int64
+                        example: 105
+    /labor_costs:
+      get:
+        summary: "Obtaining labor costs by user for a period"
+        tags:
+          - tasks
+        parameters:
+
+          - name: start
+            in: query
+            required: true
+            schema:
+              type: string
+              format: data-time
+          - name: end
+            in: query
+            required: true
+            schema:
+              type: string
+              format: data-time
+          - name: user_id
+            in: query
+            required: true
+            schema:
+              type: string
+              format: integer
+        responses:
+          200:
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        format: int64
+                        example: 12
+                      lead_time:
+                        type: integer
+                      user_id:
+                        type: integer
+                        format: int64
+                        example: 105
+
+
