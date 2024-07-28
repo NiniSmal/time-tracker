@@ -3,8 +3,8 @@ package config
 import "github.com/ilyakaznacheev/cleanenv"
 
 type Config struct {
-	Port     int    `env:"PORT"`
-	Postgres string `env:"POSTGRES"`
+	Port        int    `env:"PORT"`
+	PostgresURL string `env:"POSTGRES_URL"`
 }
 
 func LoadConfig() (*Config, error) {

@@ -23,13 +23,14 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var user entity.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var userPassport entity.UserPassport
+
+	err := json.NewDecoder(r.Body).Decode(&userPassport)
 	if err != nil {
 		sendError(ctx, w, err)
 		return
 	}
-	err = u.service.CreateUser(ctx, user)
+	err = u.service.CreateUser(ctx, userPassport)
 	if err != nil {
 		sendError(ctx, w, err)
 		return
@@ -79,16 +80,21 @@ func (u *UserHandler) Users(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	passportNumber := r.URL.Query().Get("passportNumber")
-
-	var user entity.User
-
-	err := json.NewDecoder(r.Body).Decode(&user)
+	userID := r.URL.Query().Get("id")
+	id, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
 		sendError(ctx, w, err)
 		return
 	}
-	err = u.service.UpdateUser(ctx, passportNumber, user)
+
+	var user entity.User
+
+	err = json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		sendError(ctx, w, err)
+		return
+	}
+	err = u.service.UpdateUser(ctx, id, user)
 	if err != nil {
 		sendError(ctx, w, err)
 		return

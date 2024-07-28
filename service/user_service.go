@@ -2,12 +2,17 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 	"time-tracker/entity"
 	"time-tracker/storage"
 )
+
+const website = "website"
 
 type UserService struct {
 	repo *storage.UserRepo
@@ -19,11 +24,36 @@ func NewUserService(r *storage.UserRepo) *UserService {
 	}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, user entity.User) error {
-	var err error
-	arr := strings.Split(user.PassportNumber, " ")
+func (s *UserService) CreateUser(ctx context.Context, userPassport entity.UserPassport) error {
+	err := entity.Validation(userPassport.PassportNumber)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s/info?passportNumber=%s", website, userPassport.PassportNumber)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	var user entity.User
+
+	err = json.NewDecoder(req.Body).Decode(&user)
+	if err != nil {
+		return err
+	}
+
+	arr := strings.Split(userPassport.PassportNumber, " ")
 	PassportSeries := arr[0]
 	PassportNumber := arr[1]
+
 	user.PassportNum, err = strconv.ParseInt(PassportNumber, 10, 64)
 	if err != nil {
 		return err
@@ -49,8 +79,8 @@ func (s *UserService) Users(ctx context.Context, filters entity.UserFilter) ([]e
 	return users, nil
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, passportNumber string, user entity.User) error {
-	err := s.repo.UpdateUser(ctx, passportNumber, user)
+func (s *UserService) UpdateUser(ctx context.Context, id int64, user entity.User) error {
+	err := s.repo.UpdateUser(ctx, id, user)
 	if err != nil {
 		return err
 	}

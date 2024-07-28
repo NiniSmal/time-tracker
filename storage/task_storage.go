@@ -18,9 +18,9 @@ func NewTaskRepo(conn *pgx.Conn) *TaskRepo {
 }
 
 func (t *TaskRepo) CreateTask(ctx context.Context, task entity.Task) error {
-	query := "INSERT INTO tasks (id, name, status, created_at, finished_at, lead_time, user_id ) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	query := "INSERT INTO tasks ( name, status, created_at, finished_at, lead_time, user_id ) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 
-	_, err := t.conn.Exec(ctx, query, task.ID, task.Name, task.Status, task.CreatedAt, task.FinishedAt, task.LeadTime, task.UserID)
+	_, err := t.conn.Exec(ctx, query, task.Name, task.Status, task.CreatedAt, task.FinishedAt, task.LeadTime, task.UserID)
 	if err != nil {
 		return err
 	}

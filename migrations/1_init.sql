@@ -1,7 +1,6 @@
 -- +goose Up
 CREATE TABLE users(
     id BIGSERIAL PRIMARY KEY ,
-    passportNumber text,
     passport_num int NOT NULL,
     passport_series int NOT NULL,
     surname text,
@@ -11,7 +10,7 @@ CREATE TABLE users(
 );
 
 CREATE TABLE tasks(
-    id SERIAL PRIMARY KEY ,
+    id BIGSERIAL PRIMARY KEY ,
     name text NOT NULL,
     status boolean,
     created_at  timestamp,
@@ -20,6 +19,10 @@ CREATE TABLE tasks(
     user_id BIGINT  NOT NULL
 );
 
+
+ALTER TABLE tasks ADD CONSTRAINT tasks_user_id_fkey foreign key(user_id) REFERENCES users(id) ON DELETE CASCADE;
+
 -- +goose Down
+ALTER TABLE tasks DROP CONSTRAINT tasks_user_id_fkey;
 DROP TABLE tasks;
 DROP TABLE users;

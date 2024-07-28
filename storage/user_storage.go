@@ -19,8 +19,8 @@ func NewUserRepo(c *pgx.Conn) *UserRepo {
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, user entity.User) error {
-	query := "INSERT INTO users(id, passportNumber, passport_num, passport_series, surname, name, address, created_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)"
-	_, err := r.conn.Exec(ctx, query, user.ID, user.PassportNumber, user.PassportNum, user.PassportSeries, user.Surname, user.Name, user.Address, user.CreatedAt)
+	query := "INSERT INTO users( passport_num, passport_series, surname, name, address, created_at) VALUES($1, $2, $3, $4, $5, $6)"
+	_, err := r.conn.Exec(ctx, query, user.PassportNum, user.PassportSeries, user.Surname, user.Name, user.Address, user.CreatedAt)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user entity.User) error {
 }
 
 func (r *UserRepo) Users(ctx context.Context, filter entity.UserFilter) (users []entity.User, err error) {
-	builder := sq.Select("id", "passportNumber", "passport_num", "passport_series", "surname", "name", "address", "created_at").
+	builder := sq.Select("id", "passport_num", "passport_series", "surname", "name", "address", "created_at").
 		From("users")
 	if filter.Name != "" {
 		builder = builder.Where(sq.Eq{"name": filter.Name})
@@ -54,7 +54,7 @@ func (r *UserRepo) Users(ctx context.Context, filter entity.UserFilter) (users [
 	}
 
 	var user entity.User
-	_, err = pgx.ForEachRow(rows, []any{&user.ID, &user.PassportNumber, &user.PassportNum, &user.PassportSeries, &user.Surname, &user.Name, &user.Address, &user.CreatedAt}, func() error {
+	_, err = pgx.ForEachRow(rows, []any{&user.ID, &user.PassportNum, &user.PassportSeries, &user.Surname, &user.Name, &user.Address, &user.CreatedAt}, func() error {
 		users = append(users, user)
 		return nil
 	})
@@ -64,9 +64,9 @@ func (r *UserRepo) Users(ctx context.Context, filter entity.UserFilter) (users [
 	return users, nil
 }
 
-func (r *UserRepo) UpdateUser(ctx context.Context, passportNumber string, user entity.User) error {
-	query := "UPDATE users SET name = $1, surname=$2, address =$3 WHERE passportNumber = $4"
-	_, err := r.conn.Exec(ctx, query, user.Name, user.Surname, user.Address, passportNumber)
+func (r *UserRepo) UpdateUser(ctx context.Context, id int64, user entity.User) error {
+	query := "UPDATE users SET name = $1, surname=$2, address =$3 WHERE id = $4"
+	_, err := r.conn.Exec(ctx, query, user.Name, user.Surname, user.Address, id)
 	if err != nil {
 		return err
 	}

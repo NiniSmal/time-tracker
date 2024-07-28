@@ -20,19 +20,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, cfg.Postgres)
+	conn, err := pgx.Connect(ctx, cfg.PostgresURL)
 	if err != nil {
 		logger.Error("connect to database", "error", err)
 		return
 	}
+
 	logger.Info("connected to postgres -ok")
 	err = conn.Ping(ctx)
 	if err != nil {
 		logger.Error("ping to database", "error", err)
+		return
 	}
 
 	defer conn.Close(ctx)
@@ -53,10 +56,11 @@ func main() {
 	mux.HandleFunc("DELETE /users", uh.DeleteUser)
 	mux.HandleFunc("PUT /users", uh.UpdateUser)
 	mux.HandleFunc("GET /info", uh.UserByPassport)
-
+	//2задание сделать как будто мы идем на туда
 	mux.HandleFunc("POST /tasks", th.CreateTask)
 	mux.HandleFunc("PUT /tasks", th.UpdateStatus)
-	mux.HandleFunc("GET /labor_costs", th.TaskTimeByUserID)
+	mux.HandleFunc("GET /spend_time", th.TaskTimeByUserID)
+
 	server := http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),
 		Handler:           mw.Logging(mux),
@@ -64,10 +68,10 @@ func main() {
 		ReadHeaderTimeout: time.Second,
 		WriteTimeout:      time.Second,
 	}
+
 	err = server.ListenAndServe()
 	if err != nil {
 		logger.Error("listen and serve", "error", err)
 		return
 	}
-	logger.Info("listen and serve - ok")
 }

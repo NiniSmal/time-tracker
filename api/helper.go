@@ -9,11 +9,12 @@ import (
 	"time-tracker/entity"
 )
 
+type errorResponse struct {
+	Error string `json:"error"`
+}
+
 func sendError(ctx context.Context, w http.ResponseWriter, err error) {
-	l, ok := ctx.Value(entity.CtxLogger{}).(*slog.Logger)
-	if !ok {
-		panic("no login in context")
-	}
+	l := ctx.Value(entity.CtxLogger{}).(*slog.Logger)
 
 	errCode := http.StatusInternalServerError
 
@@ -22,10 +23,14 @@ func sendError(ctx context.Context, w http.ResponseWriter, err error) {
 		errCode = http.StatusNotFound
 	case errors.Is(err, entity.ErrBadRequest):
 		errCode = http.StatusBadRequest
+	case errors.Is(err, entity.ErrValidate):
+		errCode = http.StatusBadRequest
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	w.WriteHeader(errCode)
+	resp := errorResponse{Error: err.Error()}
 	_, _ = w.Write([]byte(http.StatusText(errCode)))
+	_ = sendJson(w, resp)
 
 	l.Error("sendError", "error", err)
 }
