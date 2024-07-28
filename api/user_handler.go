@@ -30,6 +30,12 @@ func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		sendError(ctx, w, err)
 		return
 	}
+	err = entity.Validation(userPassport.PassportNumber)
+	if err != nil {
+		sendError(ctx, w, err)
+		return
+	}
+
 	err = u.service.CreateUser(ctx, userPassport)
 	if err != nil {
 		sendError(ctx, w, err)

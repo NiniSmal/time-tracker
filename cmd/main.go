@@ -24,6 +24,8 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	ctx := context.Background()
+	client := http.Client{}
+	client.Timeout = time.Second * 5
 
 	conn, err := pgx.Connect(ctx, cfg.PostgresURL)
 	if err != nil {
@@ -43,7 +45,7 @@ func main() {
 	ur := storage.NewUserRepo(conn)
 	tr := storage.NewTaskRepo(conn)
 
-	us := service.NewUserService(ur)
+	us := service.NewUserService(ur, &client, cfg.AppURL)
 	ts := service.NewTaskService(tr)
 
 	uh := api.NewUserHandler(us)

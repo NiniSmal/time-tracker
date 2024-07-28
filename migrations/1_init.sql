@@ -5,6 +5,7 @@ CREATE TABLE users(
     passport_series int NOT NULL,
     surname text,
     name text,
+    patronymic text,
     address text,
     created_at timestamp NOT NULL
 );

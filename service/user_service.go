@@ -12,63 +12,79 @@ import (
 	"time-tracker/storage"
 )
 
-const website = "website"
-
 type UserService struct {
-	repo *storage.UserRepo
+	repo   *storage.UserRepo
+	client *http.Client
+	appURL string
 }
 
-func NewUserService(r *storage.UserRepo) *UserService {
+func NewUserService(r *storage.UserRepo, client *http.Client, appURL string) *UserService {
 	return &UserService{
-		repo: r,
+		repo:   r,
+		client: client,
+		appURL: appURL,
 	}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, userPassport entity.UserPassport) error {
-	err := entity.Validation(userPassport.PassportNumber)
-	if err != nil {
-		return err
-	}
-	url := fmt.Sprintf("%s/info?passportNumber=%s", website, userPassport.PassportNumber)
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	var user entity.User
-
-	err = json.NewDecoder(req.Body).Decode(&user)
-	if err != nil {
-		return err
-	}
-
 	arr := strings.Split(userPassport.PassportNumber, " ")
 	PassportSeries := arr[0]
 	PassportNumber := arr[1]
 
-	user.PassportNum, err = strconv.ParseInt(PassportNumber, 10, 64)
+	userPassportNum, err := strconv.ParseInt(PassportNumber, 10, 64)
 	if err != nil {
 		return err
 	}
-	user.PassportSeries, err = strconv.ParseInt(PassportSeries, 10, 64)
+	userPassportSeries, err := strconv.ParseInt(PassportSeries, 10, 64)
 	if err != nil {
 		return err
 	}
-	user.CreatedAt = time.Now()
+	userInfo, err := s.userInfo(ctx, userPassportNum, userPassportSeries)
+	if err != nil {
+		return err
+	}
+	user := entity.User{
+		PassportNum:    userPassportNum,
+		PassportSeries: userPassportSeries,
+		Surname:        userInfo.Surname,
+		Name:           userInfo.Name,
+		Patronymic:     userInfo.Patronymic,
+		Address:        userInfo.Address,
+		CreatedAt:      time.Time{},
+	}
 
 	err = s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *UserService) userInfo(ctx context.Context, userPassportNum, userPassportSeries int64) (entity.UserInfo, error) {
+	url := fmt.Sprintf("%s?passportSerie=%d&passportNumber=%d", s.appURL, userPassportSeries, userPassportNum)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return entity.UserInfo{}, err
+	}
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		if resp.StatusCode != http.StatusOK {
+			return entity.UserInfo{}, entity.ErrBadRequest
+		}
+		return entity.UserInfo{}, err
+	}
+
+	defer resp.Body.Close()
+
+	var user entity.UserInfo
+
+	err = json.NewDecoder(resp.Body).Decode(&user)
+	if err != nil {
+		return entity.UserInfo{}, err
+	}
+	return user, nil
 }
 
 func (s *UserService) Users(ctx context.Context, filters entity.UserFilter) ([]entity.User, error) {

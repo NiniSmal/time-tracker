@@ -8,6 +8,7 @@ type User struct {
 	PassportSeries int64     `json:"passport_series,omitempty"`
 	Surname        string    `json:"surname"`
 	Name           string    `json:"name"`
+	Patronymic     string    `json:"patronymic"`
 	Address        string    `json:"address"`
 	CreatedAt      time.Time `json:"created_at"`
 }
@@ -17,10 +18,18 @@ type UserPassport struct {
 }
 
 type UserFilter struct {
-	Surname   string    `json:"surname"`
-	Name      string    `json:"name"`
-	Address   string    `json:"address"`
-	CreatedAt time.Time `json:"created_at"`
+	Surname    string    `json:"surname"`
+	Name       string    `json:"name"`
+	Patronymic string    `json:"patronymic""`
+	Address    string    `json:"address"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type UserInfo struct {
+	Surname    string `json:"surname"`
+	Name       string `json:"name"`
+	Patronymic string `json:"patronymic""`
+	Address    string `json:"address"`
 }
 
 func Validation(passport string) error {
